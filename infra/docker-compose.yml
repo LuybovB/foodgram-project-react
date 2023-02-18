@@ -1,57 +1,48 @@
-version: '3.8'
+version: '2.6'
 
 services:
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend/:/app/result_build/
-
   db:
-    image: postgres:12.4-alpine
-    ports:
-      - "5432:5432"
+    image: postgres:13.0-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env_db
+      - ./.env
+    restart: always
 
   backend:
-    image: grandprinceess/foodgram:latest
+    image: luybovb/foodgram-backend:latest
     restart: always
-    command: >
-      sh -c "python manage.py collectstatic --noinput &&
-             python manage.py migrate &&
-             gunicorn foodgram.wsgi:application --bind 0.0.0.0:80"
     volumes:
-      - static_value:/code/static/
-      - media_value:/code/media/
-      - ./backend/:/code/
+      - static_value:/app/static/
+      - media_value:/app/media/
+      - redoc:/app/api/docs/
     depends_on:
       - db
     env_file:
-      - ./.env_db
-      - ./.env_mail
-      - ./.env_web
+      - ./.env
+
+  frontend:
+    image: luybovb/foodgram-frontend:latest
+    volumes:
+      - ../frontend/:/app/result_build/
 
   nginx:
-    image: nginx:1.21.4-alpine
+    image: nginx:1.21.3-alpine
     ports:
       - "80:80"
     volumes:
-      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build/:/usr/share/nginx/html/
-      - ./docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
-      - static_value:/code/static/
-      - media_value:/code/media/
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
+      - static_value:/var/html/static/
+      - media_value:/var/html/media/
+      - redoc:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
+    restart: always
 
 volumes:
-  postgres_data:
   static_value:
   media_value:
-
+  postgres_data:
+  redoc:
