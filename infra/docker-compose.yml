@@ -11,8 +11,7 @@ services:
     restart: always
 
   backend:
-    image: luybovb/foodgram-backend:latest
-    restart: always
+    image: backend:latest
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -23,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: luybovb/foodgram-frontend:latest
+    image: frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
