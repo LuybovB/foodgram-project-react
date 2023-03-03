@@ -7,7 +7,11 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY='likh0b6j3%7(jcm7aa=y-&uoo902cx5h)7o8h9h$pngeet)@pf'
+SECRET_KEY = 'c#7@=ujd+ybrhnq5*)93@o3vc%pefl%sh-ryq#=#^^12-4ub@w'
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_URLS_REGEX = r'^/api/.*$' 
 
 DEBUG = True
 
@@ -40,6 +44,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'foodgram.urls'
