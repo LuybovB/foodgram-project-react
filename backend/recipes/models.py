@@ -6,6 +6,7 @@ from django.db.models import UniqueConstraint
 User = get_user_model()
 
 
+
 class Ingredient(models.Model):
     name = models.CharField('Название', max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=200)
@@ -40,7 +41,6 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Recipe(models.Model):
     name = models.CharField('Название', max_length=200)
@@ -79,19 +79,17 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
-
+    
 
 class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='ingredient_list',
-        verbose_name='Рецепт',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',
@@ -114,13 +112,11 @@ class Favourite(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='favorites',
-        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='favorites',
-        verbose_name='Рецепт',
     )
 
     class Meta:
@@ -132,7 +128,7 @@ class Favourite(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} добавил "{self.recipe}" в Избранное'
+        return f'Избранные рецепты {self.user}'
 
 
 class ShoppingCart(models.Model):
@@ -140,13 +136,11 @@ class ShoppingCart(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        verbose_name='Рецепт',
     )
 
     class Meta:
@@ -158,4 +152,4 @@ class ShoppingCart(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} добавил "{self.recipe}" в Корзину покупок'
+        return f'Список покупок {self.user}'
