@@ -35,15 +35,20 @@ class Subscribe(models.Model):
     author = models.ForeignKey(
         User,
         related_name='subscribing',
-        verbose_name="Автор",
+        verbose_name="Автор  рецепта",
         on_delete=models.CASCADE,
     )
 
     class Meta:
         ordering = ['-id']
-        constraints = [
-            UniqueConstraint(fields=['user', 'author'],
-                             name='unique_subscription')
-        ]
-        verbose_name = 'Подписка'
+        verbose_name = 'Подписки'
         verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'user'],
+                name='unique_subscribe'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.author}'
