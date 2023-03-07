@@ -32,16 +32,16 @@ class User(AbstractUser):
         return self.username
 
 
-class Subscribe(models.Model):
+class Follow(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='subscriber',
+        related_name='Follower',
         verbose_name="Подписчик",
         on_delete=models.CASCADE,
     )
     author = models.ForeignKey(
         User,
-        related_name='subscribing',
+        related_name='Following',
         verbose_name="Автор  рецепта",
         on_delete=models.CASCADE,
     )
@@ -53,7 +53,7 @@ class Subscribe(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'user'],
-                name='unique_subscribe'
+                name='unique_Follow'
             )
         ]
 

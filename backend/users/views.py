@@ -1,5 +1,5 @@
 from api.pagination import CustomPagination
-from api.serializers import CustomUserSerializer, SubscribeSerializer
+from api.serializers import CustomUserSerializer, FollowSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Subscribe
+from .models import Follow
 
 User = get_user_model()
 
@@ -23,21 +23,21 @@ class CustomUserViewSet(UserViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def subscribe(self, request, **kwargs):
+    def Follow(self, request, **kwargs):
         user = request.user
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
 
         if request.method == 'POST':
-            serializer = SubscribeSerializer(author,
+            serializer = FollowSerializer(author,
                                              data=request.data,
                                              context={"request": request})
             serializer.is_valid(raise_exception=True)
-            Subscribe.objects.create(user=user, author=author)
+            Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            subscription = get_object_or_404(Subscribe,
+            subscription = get_object_or_404(Follow,
                                              user=user,
                                              author=author)
             subscription.delete()
@@ -51,7 +51,7 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(pages,
+        serializer = FollowSerializer(pages,
                                          many=True,
                                          context={'request': request})
         return self.get_paginated_response(serializer.data)

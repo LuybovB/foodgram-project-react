@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
-from users.models import Subscribe
+from users.models import Follow
 
 User = get_user_model()
 
@@ -25,7 +25,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = SerializerMethodField(read_only=True)
+    is_Followed = SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -35,17 +35,20 @@ class CustomUserSerializer(UserSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed',
+            'is_Followed',
         )
 
-    def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
-        if user.is_anonymous:
+    def get_is_Follow(self, obj):
+        user = self.context["request"].user
+        follow = self.context["follow"]
+        if str(user) != "AnonymousUser":
+            if follow.filter(user=user, author=obj):
+                return True
             return False
-        return Subscribe.objects.filter(user=user, author=obj).exists()
+        return None
 
 
-class SubscribeSerializer(CustomUserSerializer):
+class FollowSerializer(CustomUserSerializer):
     recipes_count = SerializerMethodField()
     recipes = SerializerMethodField()
 
@@ -58,7 +61,7 @@ class SubscribeSerializer(CustomUserSerializer):
     def validate(self, data):
         author = self.instance
         user = self.context.get('request').user
-        if Subscribe.objects.filter(author=author, user=user).exists():
+        if Follow.objects.filter(author=author, user=user).exists():
             raise ValidationError(
                 detail='Вы уже подписаны на этого пользователя!',
                 code=status.HTTP_400_BAD_REQUEST
