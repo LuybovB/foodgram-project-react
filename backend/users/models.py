@@ -4,22 +4,29 @@ from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
-    ]
-    email = models.EmailField(
-        'email address',
-        max_length=254,
-        unique=True,
-    )
 
-    class Meta:
-        ordering = ['id']
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+    username = models.CharField(
+        db_index=True,
+        max_length=150,
+        unique=True,
+        verbose_name='Уникальное имя')
+
+    email = models.EmailField(
+        db_index=True,
+        unique=True,
+        max_length=254,
+        verbose_name='Электронная почта')
+
+    first_name = models.CharField(
+        max_length=150,
+        verbose_name='Имя')
+
+    last_name = models.CharField(
+        max_length=150,
+        verbose_name='Фамилия')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     def __str__(self):
         return self.username

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'recipes',
     'api',
     'dotenv',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
