@@ -39,13 +39,10 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_Follow(self, obj):
-        user = self.context["request"].user
-        follow = self.context["follow"]
-        if str(user) != "AnonymousUser":
-            if follow.filter(user=user, author=obj):
-                return True
+        user = self.context.get('request').user
+        if user.is_anonymous:
             return False
-        return None
+        return Follow.objects.filter(user=user, author=obj).exists()
 
 
 class FollowSerializer(CustomUserSerializer):
