@@ -43,6 +43,10 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name'],),
+        ]
 
     def __str__(self):
         return self.name

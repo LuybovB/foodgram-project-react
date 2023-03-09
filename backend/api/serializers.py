@@ -4,12 +4,20 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
+
+from recipes.models import (
+    Favourite,
+    Ingredient,
+    IngredientInRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag
+)
 from users.models import Follow
 
 User = get_user_model()
@@ -140,6 +148,13 @@ class RecipeReadSerializer(ModelSerializer):
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
 
+    def _obj_exists(self, recipe, name_class):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return name_class.objects.filter(user=request.user,
+                                         recipe=recipe).exists()
+
 
 class IngredientInRecipeWriteSerializer(ModelSerializer):
     id = IntegerField(write_only=True)
@@ -255,3 +270,36 @@ class RecipeShortSerializer(ModelSerializer):
             'image',
             'cooking_time'
         )
+
+
+class FavouriteSerializer(RecipeShortSerializer):
+
+    class Meta:
+        model = Favourite
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        return representation(
+            self.context,
+            instance.recipe,
+            RecipeShortSerializer)
+
+
+class ShoppingCartSerializer(RecipeShortSerializer):
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        return representation(
+            self.context,
+            instance.recipe,
+            RecipeShortSerializer)
+
+
+def representation(context, instance, serializer):
+
+    request = context.get('request')
+    new_context = {'request': request}
+    return serializer(instance, context=new_context).data
