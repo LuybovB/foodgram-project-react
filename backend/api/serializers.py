@@ -18,9 +18,7 @@ from recipes.models import (
     ShoppingCart,
     Tag
 )
-from users.models import Follow
-
-User = get_user_model()
+from users.models import Follow,User
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
