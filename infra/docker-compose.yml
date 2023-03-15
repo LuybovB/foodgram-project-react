@@ -11,7 +11,7 @@ services:
     restart: always
 
   backend:
-    image: backend:latest
+    image: grandprinceess/backend:latest
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -22,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: frontend:latest
+    image: grandprinceess/backend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -32,6 +32,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./foodgramproject.crt:/etc/nginx/foodgramproject.crt
+      - ./foodgramproject.key:/etc/nginx/foodgramproject.key
       - ../frontend/build:/usr/share/nginx/html/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
