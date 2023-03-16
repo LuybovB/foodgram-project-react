@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -18,7 +17,7 @@ from recipes.models import (
     ShoppingCart,
     Tag
 )
-from users.models import Follow,User
+from users.models import Follow, User
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):

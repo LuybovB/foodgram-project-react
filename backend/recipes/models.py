@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 from colorfield.fields import ColorField
 
 User = get_user_model()
-
 
 
 class Ingredient(models.Model):
@@ -30,16 +29,17 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=200,
         verbose_name='Название'
-    )   
+    )
     color = ColorField(
         format='hex',
         verbose_name='Цвет'
-    )   
+    )
     slug = models.SlugField(
         max_length=200,
         unique=True,
         verbose_name='Текстовый идентификатор тега'
     )
+
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
@@ -92,7 +92,6 @@ class Recipe(models.Model):
         help_text='Добавить дату создания'
     )
 
-
     class Meta:
         ordering = ['-id']
         verbose_name = 'Рецепт'
@@ -100,7 +99,7 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(

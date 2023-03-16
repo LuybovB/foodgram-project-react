@@ -1,7 +1,4 @@
-from datetime import datetime
-
 from djoser.views import UserViewSet
-from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,7 +8,6 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .filters import IngredientSearchFilter, RecipeFilter
@@ -19,7 +15,8 @@ from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeReadSerializer,
                           FavouriteSerializer, RecipeWriteSerializer,
-                          TagSerializer, CustomUserSerializer, FollowSerializer)
+                          TagSerializer, CustomUserSerializer,
+                          FollowSerializer)
 
 from users.models import Follow, User
 from .utils import get_shopping_cart
@@ -41,12 +38,11 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=author_id)
 
         if request.method == 'POST':
-            serializer = FollowSerializer(author,
-                                             data=request.data,
-                                             context={"request": request})
+            serializer = FollowSerializer(author, data=request.data,
+                                          context={"request": request})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         detail=False,
@@ -56,9 +52,8 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(pages,
-                                         many=True,
-                                         context={'request': request})
+        serializer = FollowSerializer(
+            pages, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
 
