@@ -47,8 +47,8 @@ class FollowSerializer(CustomUserSerializer):
     recipes = SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
-        fields = CustomUserSerializer.Meta.fields + ( 
-            'recipes_count', 'recipes' 
+        fields = CustomUserSerializer.Meta.fields + (
+            'recipes_count', 'recipes'
         )
         read_only_fields = ('email', 'username')
 
@@ -56,9 +56,13 @@ class FollowSerializer(CustomUserSerializer):
         author = self.instance
         user = self.context.get("request").user
         if Follow.objects.filter(author=author, user=user).exists():
-            raise ValidationError(detail="Вы уже подписаны на этого пользователя!")
+            raise ValidationError(
+                detail="Вы уже подписаны на этого пользователя!"
+            )
         if user == author:
-            raise ValidationError(detail="Вы не можете подписаться на самого себя!")
+            raise ValidationError(
+                detail="Вы не можете подписаться на самого себя!"
+            )
         return data
 
     def get_recipes_count(self, obj):
@@ -148,7 +152,8 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 
 
 class RecipeWriteSerializer(ModelSerializer):
-    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(),
+                                  many=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeWriteSerializer(many=True)
     image = Base64ImageField()
