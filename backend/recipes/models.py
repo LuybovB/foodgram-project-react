@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from colorfield.fields import ColorField
 from django.db import models
 from django.db.models import UniqueConstraint
-from colorfield.fields import ColorField
 
 User = get_user_model()
 
