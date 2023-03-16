@@ -22,7 +22,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    is_Followed = SerializerMethodField(read_only=True)
+    is_subscribed = SerializerMethodField()
 
     class Meta:
         model = User
@@ -35,7 +35,7 @@ class CustomUserSerializer(UserSerializer):
             "is_Followed",
         )
 
-    def get_is_Followed(self, obj):
+    def get_is_subscribed(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
