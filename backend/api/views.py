@@ -1,7 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from recipes.models import (Favourite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import status
