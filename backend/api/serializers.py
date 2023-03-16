@@ -47,8 +47,10 @@ class FollowSerializer(CustomUserSerializer):
     recipes = SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
-        fields = CustomUserSerializer.Meta.fields + ("recipes_count", "recipes")
-        read_only_fields = ("email", "username")
+        fields = CustomUserSerializer.Meta.fields + ( 
+            'recipes_count', 'recipes' 
+        )
+        read_only_fields = ('email', 'username')
 
     def validate(self, data):
         author = self.instance
@@ -110,7 +112,10 @@ class RecipeReadSerializer(ModelSerializer):
     def get_ingredients(self, obj):
         recipe = obj
         ingredients = recipe.ingredients.values(
-            "id", "name", "measurement_unit", amount=F("ingredientinrecipe__amount")
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('ingredientinrecipe__amount')
         )
         return ingredients
 
@@ -126,11 +131,12 @@ class RecipeReadSerializer(ModelSerializer):
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
 
-    def _obj_exists(self, recipe, name_class):
-        request = self.context.get("request")
+    def _obj_exists(self, recipe, name_class): 
+        request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return name_class.objects.filter(user=request.user, recipe=recipe).exists()
+        return name_class.objects.filter(user=request.user,
+                                         recipe=recipe).exists()
 
 
 class IngredientInRecipeWriteSerializer(ModelSerializer):
