@@ -1,23 +1,22 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favourite, Ingredient, Recipe,
-                            ShoppingCart, Tag)
+from recipes.models import Favourite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from users.models import Follow, User
+
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          FavouriteSerializer, RecipeWriteSerializer,
-                          TagSerializer, CustomUserSerializer,
-                          FollowSerializer)
-
-from users.models import Follow, User
+from .serializers import (CustomUserSerializer, FavouriteSerializer,
+                          FollowSerializer, IngredientSerializer,
+                          RecipeReadSerializer, RecipeWriteSerializer,
+                          TagSerializer)
 from .utils import get_shopping_cart
 
 
@@ -27,32 +26,27 @@ class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPagination
 
     @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
+        detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated]
     )
     def Follow(self, request, **kwargs):
         user = request.user
-        author_id = self.kwargs.get('id')
+        author_id = self.kwargs.get("id")
         author = get_object_or_404(User, id=author_id)
 
-        if request.method == 'POST':
-            serializer = FollowSerializer(author, data=request.data,
-                                          context={"request": request})
+        if request.method == "POST":
+            serializer = FollowSerializer(
+                author, data=request.data, context={"request": request}
+            )
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(
-        detail=False,
-        permission_classes=[IsAuthenticated]
-    )
+    @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(
-            pages, many=True, context={'request': request})
+        serializer = FollowSerializer(pages, many=True, context={"request": request})
         return self.get_paginated_response(serializer.data)
 
 
@@ -69,7 +63,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientSearchFilter
-    search_fields = ('^name', )
+    search_fields = ("^name",)
     pagination_class = None
 
 
@@ -89,9 +83,7 @@ class RecipeViewSet(ModelViewSet):
         return RecipeWriteSerializer
 
     @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
+        detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
         return self._create_or_destroy(
@@ -100,7 +92,7 @@ class RecipeViewSet(ModelViewSet):
 
     @action(
         detail=True,
-        methods=('post', 'delete'),
+        methods=("post", "delete"),
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk):
@@ -114,7 +106,7 @@ class RecipeViewSet(ModelViewSet):
     )
     def download_shopping_cart(self, user):
         shopping_cart = get_shopping_cart(user)
-        filename = 'shopping-list.txt'
-        response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        filename = "shopping-list.txt"
+        response = HttpResponse(shopping_cart, content_type="text/plain")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
         return response
