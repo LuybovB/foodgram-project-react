@@ -135,7 +135,7 @@ class RecipeReadSerializer(ModelSerializer):
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
 
-    def _obj_exists(self, recipe, name_class): 
+    def _obj_exists(self, recipe, name_class):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
@@ -173,8 +173,10 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate_ingredients(self, value):
         ingredients = value
-        if not ingredients:
-            raise ValidationError({"ingredients": "Нужен хотя бы один ингредиент!"})
+        if not ingredients: 
+            raise ValidationError({
+                'ingredients': 'Нужен хотя бы один ингредиент!'
+            })
         ingredients_list = []
         for item in ingredients:
             ingredient = get_object_or_404(Ingredient, id=item["id"])
@@ -192,7 +194,9 @@ class RecipeWriteSerializer(ModelSerializer):
     def validate_tags(self, value):
         tags = value
         if not tags:
-            raise ValidationError({"tags": "Нужно выбрать хотя бы один тег!"})
+            raise ValidationError({
+                'tags': 'Нужно выбрать хотя бы один тег!'
+            })
         tags_list = []
         for tag in tags:
             if tag in tags_list:
@@ -263,7 +267,10 @@ class ShoppingCartSerializer(RecipeShortSerializer):
         fields = ("user", "recipe")
 
     def to_representation(self, instance):
-        return representation(self.context, instance.recipe, RecipeShortSerializer)
+        return representation(
+            self.context,
+            instance.recipe,
+            RecipeShortSerializer)
 
 
 def representation(context, instance, serializer):
