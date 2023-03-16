@@ -35,7 +35,7 @@ class CustomUserSerializer(UserSerializer):
             "is_Followed",
         )
 
-    def get_is_Follow(self, obj):
+    def get_is_Followed(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
@@ -173,7 +173,7 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate_ingredients(self, value):
         ingredients = value
-        if not ingredients: 
+        if not ingredients:
             raise ValidationError({
                 'ingredients': 'Нужен хотя бы один ингредиент!'
             })
