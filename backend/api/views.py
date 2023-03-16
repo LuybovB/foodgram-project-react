@@ -30,7 +30,7 @@ class CustomUserViewSet(UserViewSet):
         methods=["post", "delete"],
         permission_classes=[IsAuthenticated]
     )
-    def Followed(self, request, **kwargs):
+    def subscribe(self, request, **kwargs):
         user = request.user
         author_id = self.kwargs.get("id")
         author = get_object_or_404(User, id=author_id)
