@@ -113,16 +113,6 @@ class RecipeReadSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def get_ingredients(self, obj):
-        recipe = obj
-        ingredients = recipe.ingredients.values(
-            'id',
-            'name',
-            'measurement_unit',
-            amount=F('ingredientinrecipe__amount')
-        )
-        return ingredients
-
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
@@ -134,6 +124,13 @@ class RecipeReadSerializer(ModelSerializer):
         if user.is_anonymous:
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
+
+        def _obj_exists(self, recipe, name_class):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return name_class.objects.filter(user=request.user,
+                                         recipe=recipe).exists()
 
 
 class IngredientInRecipeWriteSerializer(ModelSerializer):
