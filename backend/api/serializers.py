@@ -125,7 +125,7 @@ class RecipeReadSerializer(ModelSerializer):
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
 
-        def _obj_exists(self, recipe, name_class):
+    def _obj_exists(self, recipe, name_class):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
