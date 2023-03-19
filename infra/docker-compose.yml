@@ -11,7 +11,7 @@ services:
     restart: always
 
   backend:
-    image: grandprinceess/backend:latest
+    image: grandprinceess/backend
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -22,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: grandprinceess/backend:latest
+    image: grandprinceess/frontend
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -47,3 +47,4 @@ volumes:
   media_value:
   postgres_data:
   redoc:
+
