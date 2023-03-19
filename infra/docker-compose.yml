@@ -11,7 +11,7 @@ services:
     restart: always
 
   backend:
-    image: grandprinceess/backend
+    image: grandprinceess/foodgram_backend
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -22,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: grandprinceess/frontend
+    image: grandprinceess/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
 
