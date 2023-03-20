@@ -13,7 +13,7 @@ services:
 
   backend:
     platform: linux/amd64
-    image: grandprinceess/foodgram_backend
+    image: grandprinceess/backend
     restart: always
     volumes:
       - static_value:/app/static/
@@ -26,7 +26,7 @@ services:
 
   frontend:
     platform: linux/amd64
-    image: grandprinceess/foodgram_frontend
+    image: grandprinceess/frontend
     volumes:
       - ../frontend/:/app/result_build/
 
