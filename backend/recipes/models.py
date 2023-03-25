@@ -173,7 +173,7 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'Список покупок {self.user}'
-    
+
 
 class Follow(models.Model):
 
