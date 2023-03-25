@@ -9,7 +9,7 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=220,
         verbose_name='Название')
     measurement_unit = models.CharField('Единица измерения', max_length=200)
 
@@ -173,3 +173,29 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'Список покупок {self.user}'
+    
+
+class Follow(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчик')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follow',
+        verbose_name='Автор')
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_follow'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} {self.author}'

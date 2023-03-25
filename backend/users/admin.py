@@ -1,20 +1,19 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
-from .models import Follow, User
+from .models import User
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(UserAdmin):
+
     list_display = (
-        'pk', 'username', 'email', 'first_name', 'last_name', 'password'
+        'pk',
+        'username',
+        'email',
+        'first_name',
+        'last_name',
     )
+    empty_value_display = 'Значение отсутствует'
     list_filter = ('username', 'email')
     search_fields = ('username', 'email')
-    empty_value_display = 'N/A'
-
-
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'user', 'author')
-    list_filter = ('user', 'author')
-    empty_value_display = 'N/A'

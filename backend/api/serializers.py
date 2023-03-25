@@ -1,14 +1,16 @@
 from django.db import transaction
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Tag)
+                            ShoppingCart, Tag, Follow)
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
-from users.models import Follow, User
+from users.models import User
+from rest_framework import serializers
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -21,24 +23,19 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = SerializerMethodField()
+
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_Followed",
-        )
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        user = self.context.get("request").user
+        user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 class FollowSerializer(CustomUserSerializer):
@@ -111,6 +108,16 @@ class RecipeReadSerializer(ModelSerializer):
             'text',
             'cooking_time',
         )
+
+    def get_ingredients(self, obj):
+        recipe = obj
+        ingredients = recipe.ingredients.values(
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('ingredientinrecipe__amount')
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
