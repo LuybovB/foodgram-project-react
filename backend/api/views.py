@@ -133,6 +133,7 @@ class RecipeViewSet(ModelViewSet):
         ) if request.method == 'POST' else self.delete_from(
             ShoppingCart, request, pk
         )
+
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response({'errors': 'Рецепт уже добавлен!'},
