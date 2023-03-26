@@ -115,12 +115,13 @@ class RecipeViewSet(ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def favorite(self, request, pk):
 
-        if request.method == 'POST':
-            return self.add_to(Favourite, request.user, pk)
-        else:
-            return self.delete_from(Favourite, request.user, pk)
+    def favorite(self, request, pk=None):
+        return self.add_to(
+            Favourite, request, pk
+        ) if request.method == 'POST' else self.delete_from(
+            Favourite, request, pk
+        )
 
     @action(
         detail=True,
@@ -129,13 +130,9 @@ class RecipeViewSet(ModelViewSet):
     )
 
     def shopping_cart(self, request, pk):
-
         if request.method == 'POST':
-
             return self.add_to(ShoppingCart, request.user, pk)
-  
         else:
-
             return self.delete_from(ShoppingCart, request.user, pk)
 
     def add_to(self, model, user, pk):
