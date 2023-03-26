@@ -103,10 +103,12 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
+
     @staticmethod
     def create_object(request, pk, serializers):
         data = {'user': request.user.id, 'recipe': pk}
@@ -114,6 +116,7 @@ class RecipeViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @staticmethod
     def delete_object(request, pk, model):
         user = request.user
@@ -121,13 +124,14 @@ class RecipeViewSet(ModelViewSet):
         object = get_object_or_404(model, user=user, recipe=recipe)
         object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
     def _create_or_destroy(self, http_method, recipe, key,
                            model, serializer):
         if http_method == 'POST':
             return self.create_object(request=recipe, pk=key,
                                       serializers=serializer)
         return self.delete_object(request=recipe, pk=key, model=model)
-  
+
     @action(
         detail=True,
         methods=('post', 'delete'),
@@ -177,4 +181,4 @@ class RecipeViewSet(ModelViewSet):
         filename = f'{user.username}_shopping_list.txt'
         response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
-        return 
+        return
