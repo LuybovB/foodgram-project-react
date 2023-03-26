@@ -102,53 +102,51 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    def add_delete_obj(self, request, pk, fav_shop_serializer,
-                       fav_shop_model):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = self.request.user
-        data = {}
-        data['recipe'] = recipe.pk
-        data['subscriber'] = user.pk
-        if request.method == 'POST':
-            serializer = fav_shop_serializer(data=data,
-                                             context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            serializer = RecipeWriteSerializer(recipe,
-                                          context={'request': request})
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        obj = get_object_or_404(fav_shop_model, subscriber=user,
-                                recipe=recipe)
-        obj.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
     @action(
-        methods=['POST', 'DELETE'], detail=True,
-        url_path='favorite')
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
     def favorite(self, request, pk):
-        return self.add_delete_obj(request, pk,
-                                   fav_shop_serializer=FavouriteSerializer,
-                                   fav_shop_model=Favourite)
-
+        if request.method == 'POST':
+            return self.add_to(Favourite, request.user, pk)
+        else:
+            return self.delete_from(Favourite, request.user, pk)
     @action(
-        methods=['POST', 'DELETE'], detail=True,
-        url_path='shopping_cart')
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
     def shopping_cart(self, request, pk):
-        return self.add_delete_obj(request, pk,
-                                   fav_shop_serializer=ShoppingCartSerializer,
-                                   fav_shop_model=ShoppingCart)
-
-    @action(detail=False, url_path='download_shopping_cart',
+        if request.method == 'POST':
+            return self.add_to(ShoppingCart, request.user, pk)
+        else:
+            return self.delete_from(ShoppingCart, request.user, pk)
+    def add_to(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response({'errors': 'Рецепт уже добавлен!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = RecipeReadSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def delete_from(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'errors': 'Рецепт уже удален!'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
         user = request.user
         if not user.shopping_cart.exists():
@@ -174,4 +172,4 @@ class RecipeViewSet(ModelViewSet):
         filename = f'{user.username}_shopping_list.txt'
         response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
-        return
+        return 
