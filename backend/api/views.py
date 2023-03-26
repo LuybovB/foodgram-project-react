@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import (Favourite, Follow, Ingredient, IngredientInRecipe,
+                            Recipe, ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
@@ -13,9 +15,6 @@ from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
-from recipes.models import (Favourite, Follow, Ingredient, IngredientInRecipe,
-                            Recipe, ShoppingCart, Tag)
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import CustomPagination
@@ -117,6 +116,7 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
+
         if request.method == 'POST':
             return self.add_to(Favourite, request.user, pk)
         else:
@@ -127,10 +127,15 @@ class RecipeViewSet(ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
+
     def shopping_cart(self, request, pk):
+
         if request.method == 'POST':
+
             return self.add_to(ShoppingCart, request.user, pk)
+  
         else:
+
             return self.delete_from(ShoppingCart, request.user, pk)
 
     def add_to(self, model, user, pk):
