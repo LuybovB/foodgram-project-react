@@ -15,13 +15,14 @@ from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer)
-
+                          RecipeWriteSerializer, TagSerializer,
+                          FavouriteSerializer, ShoppingCartSerializer)
 
 User = get_user_model()
 
@@ -179,4 +180,4 @@ class RecipeViewSet(ModelViewSet):
         filename = f'{user.username}_shopping_list.txt'
         response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
-        return
+        return response
