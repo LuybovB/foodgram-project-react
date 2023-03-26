@@ -15,7 +15,7 @@ services:
     restart: always
 
   backend:
-    image: backend
+    image: grandprinceess/backend:latest
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -24,6 +24,11 @@ services:
       - db
     env_file:
       - ./.env
+  
+  frontend:
+    image: grandprinceess/backend:latest
+    volumes:
+      - ../frontend/:/app/result_build/
 
   nginx:
     platform: linux/amd64
