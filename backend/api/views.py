@@ -19,10 +19,10 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (CustomUserSerializer, FollowSerializer,
-                          IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer,
-                          FavouriteSerializer, ShoppingCartSerializer)
+from .serializers import (CustomUserSerializer, FavouriteSerializer,
+                          FollowSerializer, IngredientSerializer, 
+                          RecipeReadSerializer,RecipeWriteSerializer,
+                          TagSerializer,ShoppingCartSerializer)
 
 User = get_user_model()
 
