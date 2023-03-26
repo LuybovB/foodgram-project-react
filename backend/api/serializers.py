@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -106,7 +107,12 @@ class RecipeReadSerializer(ModelSerializer):
             "text",
             "cooking_time",
         )
-
+    def get_ingredients(self, obj):
+        recipe = obj
+        return recipe.ingredients.values(
+            "id", "name", "measurement_unit",
+            amount=F("ingredientinrecipe__amount")
+        )
     def get_is_favorited(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
