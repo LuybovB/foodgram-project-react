@@ -16,7 +16,7 @@ services:
     restart: always
 
   backend:
-    image: grandprinceess/backend:latest
+    image: backend:latest
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -27,7 +27,7 @@ services:
       - ./.env
   
   frontend:
-    image: grandprinceess/backend:latest
+    image: frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
