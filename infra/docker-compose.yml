@@ -28,15 +28,6 @@ services:
     env_file:
       - ./.env
 
-   
-
-  frontend:
-    image: frontend:latest
-    volumes:
-      - ../frontend/:/app/result_build/
-
- 
-
   nginx:
     platform: linux/amd64
     image: nginx:1.21.3-alpine
@@ -51,6 +42,7 @@ services:
       - redoc:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
+
     restart: always
 
 volumes:
