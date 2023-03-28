@@ -123,11 +123,18 @@ class RecipeViewSet(ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def shopping_cart(self, request, pk):
+    def shopping_cart(self, request, pk=None):
+        user = request.user
         if request.method == 'POST':
-            return self.add_to(ShoppingCart, request.user, pk)
-        else:
-            return self.delete_from(ShoppingCart, request.user, pk)
+            name = 'список покупок'
+            return self.add_to(ShoppingCart, user, pk, name)
+        if request.method == 'DELETE':
+            name = 'списка покупок'
+            return self.delete_from(ShoppingCart, user, pk, name)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['get'], detail=False, url_path='download_shopping_cart',
+            url_name='download_shopping_cart')
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response({'errors': 'Рецепт уже добавлен!'},
