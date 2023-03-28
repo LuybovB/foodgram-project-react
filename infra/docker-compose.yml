@@ -15,9 +15,13 @@ services:
       - ./.env
     restart: always
 
+  frontend:
+    image: grandprinceess/frontend:latest
+    volumes:
+      - ../frontend/:/app/result_build/ 
 
   backend:
-    image: backend:latest
+    image: grandprinceess/backend:latest
     volumes: 
       - static_value:/app/static/
       - media_value:/app/media/
