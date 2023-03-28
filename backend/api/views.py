@@ -102,58 +102,50 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    @staticmethod
-    def create_object(request, pk, serializers):
-        data = {'user': request.user.id, 'recipe': pk}
-        serializer = serializers(data=data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @staticmethod
-    def delete_object(request, pk, model):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        object = get_object_or_404(model, user=user, recipe=recipe)
-        object.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def _create_or_destroy(self, http_method, recipe, key,
-                           model, serializer):
-        if http_method == 'POST':
-            return self.create_object(request=recipe, pk=key,
-                                      serializers=serializer)
-        return self.delete_object(request=recipe, pk=key, model=model)
-
     @action(
         detail=True,
-        methods=('post', 'delete'),
-        permission_classes=(IsAuthenticated,),
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
-        return self._create_or_destroy(
-            request.method, request, pk, Favourite, FavouriteSerializer
-        )
-
+        if request.method == 'POST':
+            return self.add_to(Favourite, request.user, pk)
+        else:
+            return self.delete_from(Favourite, request.user, pk)
     @action(
         detail=True,
-        methods=('post', 'delete'),
-        permission_classes=(IsAuthenticated,),
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
-        return self._create_or_destroy(
-            request.method, request, pk, ShoppingCart, ShoppingCartSerializer
-        )
-
+        if request.method == 'POST':
+            return self.add_to(ShoppingCart, request.user, pk)
+        else:
+            return self.delete_from(ShoppingCart, request.user, pk)
+    def add_to(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response({'errors': 'Рецепт уже добавлен!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = RecipeReadSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def delete_from(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'errors': 'Рецепт уже удален!'},
+                        status=status.HTTP_400_BAD_REQUEST)
     @action(
         detail=False,
-        permission_classes=(IsAuthenticated,),
+        permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
         user = request.user
@@ -181,3 +173,4 @@ class RecipeViewSet(ModelViewSet):
         response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
+ 
