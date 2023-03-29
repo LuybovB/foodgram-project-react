@@ -10,8 +10,7 @@ from recipes.models import (Favourite, Follow, Ingredient, IngredientInRecipe,
                             Recipe, ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (SAFE_METHODS,
-                                        IsAuthenticated,
+from rest_framework.permissions import (SAFE_METHODS,IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
