@@ -1,4 +1,3 @@
-from http import HTTPStatus
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -12,7 +11,8 @@ from recipes.models import (Favourite, Follow, Ingredient, IngredientInRecipe,
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly, SAFE_METHODS)
+                                        IsAuthenticatedOrReadOnly,
+                                        SAFE_METHODS)
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -22,13 +22,14 @@ from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer,
-                          RecipeShortSerializer)
+                          RecipeWriteSerializer, RecipeShortSerializer,
+                          TagSerializer)
 
 User = get_user_model()
 
 CONTENT_TYPE = 'text/plain'
 FILENAME = 'shopping_list.txt'
+
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
