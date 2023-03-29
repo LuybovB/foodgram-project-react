@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -11,7 +12,7 @@ from recipes.models import (Favourite, Follow, Ingredient, IngredientInRecipe,
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAuthenticatedOrReadOnly, SAFE_METHODS)
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -21,10 +22,13 @@ from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
-                          TagSerializer)
+                          RecipeWriteSerializer, TagSerializer,
+                          RecipeShortSerializer)
 
 User = get_user_model()
 
+CONTENT_TYPE = 'text/plain'
+FILENAME = 'shopping_list.txt'
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
@@ -101,81 +105,78 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    serializer_class = RecipeReadSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def add(self, model, user, pk, name):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        relation = model.objects.filter(user=user, recipe=recipe)
-        if relation.exists():
-            return Response(
-                {'errors': f'Нельзя повторно добавить рецепт в {name}'},
-                status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
+
+    @action(
+        detail=True,
+        methods=('post', 'delete'),
+    )
+    def favorite(self, request, pk):
+        if request.method == 'POST':
+            return self.add_to(Favourite, request.user, pk)
+        return self.delete_from(Favourite, request.user, pk)
+
+    @action(
+        detail=True,
+        methods=('post', 'delete'),
+    )
+    def shopping_cart(self, request, pk):
+        if request.method == 'POST':
+            return self.add_to(ShoppingCart, request.user, pk)
+        return self.delete_from(ShoppingCart, request.user, pk)
+
+    def add_to(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response({'errors': 'Рецепт уже добавлен!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
-        serializer = RecipeReadSerializer(recipe)
+        serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_relation(self, model, user, pk, name):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        relation = model.objects.filter(user=user, recipe=recipe)
-        if not relation.exists():
-            return Response(
-                {'errors': f'Нельзя повторно удалить рецепт из {name}'},
-                status=status.HTTP_400_BAD_REQUEST)
-        relation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete_from(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'errors': 'Рецепт уже удален!'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['post', 'delete'], detail=True, url_path='favorite',
-            url_name='favorite')
-    def favorite(self, request, pk=None):
-        user = request.user
-        if request.method == 'POST':
-            name = 'избранное'
-            return self.add(Favourite, user, pk, name)
-        if request.method == 'DELETE':
-            name = 'избранного'
-            return self.delete_relation(Favourite, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @action(methods=['post', 'delete'], detail=True, url_path='shopping_cart',
-            url_name='shopping_cart')
-    def shopping_cart(self, request, pk=None):
-        user = request.user
-        if request.method == 'POST':
-            name = 'список покупок'
-            return self.add(ShoppingCart, user, pk, name)
-        if request.method == 'DELETE':
-            name = 'списка покупок'
-            return self.delete_relation(ShoppingCart, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @action(methods=['get'], detail=False, url_path='download_shopping_cart',
-            url_name='download_shopping_cart')
+    @action(
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
     def download_shopping_cart(self, request):
         user = request.user
         if not user.shopping_cart.exists():
             return Response(status=HTTP_400_BAD_REQUEST)
+
         ingredients = IngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=request.user
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
-        today = datetime.today()
-        shopping_list = (
-            f'Список покупок для: {user.get_full_name()}\n\n'
-            f'Дата: {today:%Y-%m-%d}\n\n'
+            recipe__shopping_cart__user=request.user).values(
+                'ingredient__name', 'ingredient__measurement_unit').annotate(
+                    amount=Sum('amount')
         )
-        shopping_list += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
-            f' - {ingredient["amount"]}'
+
+        today = datetime.today()
+        content = (
+            f'Foodgram. {today:%Y.%m.%d, %H:%M}\n'
+            f'Список покупок для: {user.get_full_name()}\n\n'
+        )
+        content += '\n'.join([
+            f'- {ingredient["ingredient__name"]}, '
+            f'{ingredient["ingredient__measurement_unit"]}: '
+            f'{ingredient["amount"]}'
             for ingredient in ingredients
         ])
-        shopping_list += f'\n\nFoodgram ({today:%Y})'
-        filename = f'{user.username}_shopping_list.txt'
-        response = HttpResponse(shopping_list, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+        response = HttpResponse(content, content_type=CONTENT_TYPE)
+        response['Content-Disposition'] = f'attachment; filename={FILENAME}'
+
         return response
