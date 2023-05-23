@@ -196,3 +196,7 @@ A8741235
       ```bash
       sudo docker-compose exec backend python manage.py createsuperuser
       ```
+## Автор проекта
+Беркова Любовь
+email: berkovalyubov@yandex.ru
+Telegram: @LuybouB
